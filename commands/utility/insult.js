@@ -12,9 +12,16 @@ module.exports = {
 		const insults = insultsArray.insults;
 		const randomNum = Math.floor(Math.random() * insults.length);
 		const name = interaction.options.getString('name');
+		const lowerCaseText = (text) => {
+			return text[0] + text[1] === `I ` || text[0] + text[1] === `I'`
+				? text
+				: text[0].toLowerCase() + text.slice(1);
+		};
 
 		await interaction.reply(
-			name[0] === '<' ? `${name} ${insults[randomNum]}` : `${name}, ${insults[randomNum]}`
+			name[0] === '<'
+				? `${name} ${insults[randomNum]}`
+				: `${name}, ${lowerCaseText(insults[randomNum])}`
 		);
 	},
 };
