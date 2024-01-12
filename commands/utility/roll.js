@@ -15,7 +15,7 @@ module.exports = {
 				(!user.nickname ? randomColorText(user.displayName) : randomColorText(user.nickname)) +
 				' rolled ' +
 				randomColorText(randomNum(101, 0)) +
-				'!\n```'
+				' !\n```'
 		);
 	},
 };
