@@ -6,7 +6,10 @@ module.exports = {
 		.setName('insult')
 		.setDescription('Make an insult to someone')
 		.addStringOption((option) =>
-			option.setName('name').setDescription('Name of person you wanna insult').setRequired(true)
+			option
+				.setName('name')
+				.setDescription('Name of person you wanna insult')
+				.setRequired(true)
 		),
 	async execute(interaction) {
 		const insults = insultsArray.insults;
