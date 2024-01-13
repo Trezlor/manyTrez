@@ -1,5 +1,5 @@
 {
-	"name": "roll-bot",
+	"name": "manytrez",
 	"version": "1.0.0",
 	"description": "Discord bot that rolls a number for you between 0-100",
 	"main": "index.js",
