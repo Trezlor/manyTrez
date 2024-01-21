@@ -86,28 +86,59 @@ module.exports = {
 		);
 	},
 
-	async execute(interaction) {
+	async execute(interaction, client) {
 		await interaction.deferReply({ ephemeral: true });
 
 		const { channel } = await interaction;
 		const options = await interaction.options.data;
-		const emojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 
-		let embed = new EmbedBuilder().setTitle(`${options[0].value}`).setColor('Green');
+		const user = interaction.member;
+		const userName = !user.nickname ? user.displayName : user.nickname;
+		const userAvatar = interaction.client.user.displayAvatarURL();
+		const botAvatar = interaction.user.avatarURL();
+
+		// Backup logic if other method turns out to be shit
+		// const ayy = client.emojis.cache.get('305818615712579584');
+
+		const findEmoji = (emojiName) => {
+			return client.emojis.cache.find((emoji) => emoji.name === emojiName);
+		};
+
+		const emojis = [
+			findEmoji('monday'),
+			findEmoji('tuesday'),
+			findEmoji('wednesday'),
+			findEmoji('thursday'),
+			findEmoji('friday'),
+			findEmoji('saturday'),
+			findEmoji('sunday'),
+		];
+
+		let embed = new EmbedBuilder()
+			.setTitle(`${options[0].value}`)
+			.setAuthor({
+				name: userName,
+				value: userName,
+				iconURL: botAvatar,
+			})
+			.setThumbnail(userAvatar)
+			.setTimestamp(Date.now())
+			.setColor('Green');
 
 		for (let i = 1; i < options.length; i++) {
 			let emoji = emojis[i - 1];
 			let option = options[i];
 			embed.addFields({
-				name: `${emoji} ${option.value}`,
+				name: `${emoji} ${option.value}: 0`,
 				value: ' ',
+				inline: true,
 			});
 		}
 
 		const message = await channel.send({ embeds: [embed] });
 
-		for (let i = 1; i < options.length; i++) {
-			let emoji = emojis[i - 1];
+		for (let i = 1; i < emojis.length; i++) {
+			let emoji = emojis[i];
 			message.react(emoji);
 		}
 
