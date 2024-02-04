@@ -1,4 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const buttonWrapper = require('./buttonWrapper');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -57,11 +58,12 @@ module.exports = {
 		const user = interaction.member;
 		const userName = !user.nickname ? user.displayName : user.nickname;
 
-		let daysObj = [
+		const backupEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
+		let daysArray = [
 			{
 				name: 'monday',
 				value: 0,
-				reacted: ['Trezlor', 'Banana'],
+				reacted: [],
 			},
 			{
 				name: 'tuesday',
@@ -95,43 +97,47 @@ module.exports = {
 			},
 		];
 
+		// Find custom discord emojis
 		const findEmoji = (name) => {
 			return client.emojis.cache.find((emoji) => emoji.name === name);
 		};
 
-		const newDaysOrder = (day) => {
-			const indexOfDay = daysObj.map((d) => d.name).indexOf(day);
+		// Rearrange order of days based on user input
+		const newDaysOrder = (dayInput) => {
+			const indexOfDay = daysArray.map((day) => day.name).indexOf(dayInput);
 			for (let i = 0; i < indexOfDay; i++) {
-				daysObj.push(daysObj[i]);
+				daysArray.push(daysArray[i]);
 			}
-			daysObj = daysObj.slice(indexOfDay);
+			daysArray = daysArray.slice(indexOfDay);
 		};
-		if (daysObj.map((d) => d.name).includes(dayInput) ? newDaysOrder(dayInput) : '');
+		if (daysArray.map((day) => day.name).includes(dayInput)) {
+			newDaysOrder(dayInput);
+		}
 
+		// Make embed
 		let embed = new EmbedBuilder()
 			.setTitle(title)
 			.setDescription(description)
 			.setTimestamp()
 			.setFooter({ text: `Created by ${userName}` })
-			.setColor('Red')
+			.setColor('#FF0000')
 			.addFields({
 				name: ' ',
 				value: ' ',
 			});
 
-		let backupEmojis = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣'];
 		const addDaysField = (num) => {
-			const dayName = daysObj[num].name;
+			const dayName = daysArray[num].name;
 			const dayNameUpperCase = dayName.charAt(0).toUpperCase() + dayName.slice(1);
 			embed.addFields({
 				name: `${
 					findEmoji(dayName.toLowerCase())
 						? findEmoji(dayName.toLowerCase())
 						: backupEmojis[num]
-				}${dayNameUpperCase} (${daysObj.find((day) => day.name === dayName).value})`,
+				} ${dayNameUpperCase} (${daysArray.find((day) => day.name === dayName).value})`,
 				value: `${
-					daysObj[num].reacted[0]
-						? daysObj[num].reacted
+					daysArray[num].reacted[0]
+						? daysArray[num].reacted
 								.map((item) => {
 									return `> ${item}`;
 								})
@@ -142,8 +148,8 @@ module.exports = {
 			});
 		};
 
-		for (let i = 0; i < daysObj.length; i++) {
-			if (i % 3 == 0) {
+		for (let i = 0; i < daysArray.length; i++) {
+			if (i % 3 === 0 && i > 0) {
 				embed.addFields({
 					name: ' ',
 					value: ' ',
@@ -152,15 +158,31 @@ module.exports = {
 			addDaysField(i);
 		}
 
+		// Button builder
+		const buttons = [];
+		const button = async (day, num) => {
+			const dayToUpperCase = day.charAt(0).toUpperCase() + day.slice(1);
+			buttons.push(
+				new ButtonBuilder()
+					.setLabel(dayToUpperCase)
+					.setEmoji(
+						findEmoji(day)
+							? `<a:${findEmoji(day).name}:${findEmoji(day).id}>`
+							: backupEmojis[num]
+					)
+					.setStyle(ButtonStyle.Primary)
+					.setCustomId(day)
+			);
+		};
+		daysArray.map((day, num) => button(day.name, num));
+
+		// Send embed
 		const message = await channel.send({
 			embeds: [embed],
+			components: buttonWrapper(buttons, 3),
 		});
 
-		for (let i = 0; i < daysObj.length; i++) {
-			let emoji = findEmoji(daysObj[i].name);
-			emoji ? message.react(emoji) : message.react(backupEmojis[i]);
-		}
-
+		// Inform user post was successful
 		await interaction.editReply({ content: 'Post created successfully' });
 	},
 };
