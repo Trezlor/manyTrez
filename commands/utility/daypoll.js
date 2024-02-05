@@ -1,4 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
+const {
+	SlashCommandBuilder,
+	EmbedBuilder,
+	ButtonBuilder,
+	ButtonStyle,
+	ComponentType,
+} = require('discord.js');
 const buttonWrapper = require('./buttonWrapper');
 
 module.exports = {
@@ -6,11 +12,7 @@ module.exports = {
 		.setName('daypoll')
 		.setDescription('Create a poll')
 		.addStringOption((option) =>
-			option
-				.setName('title')
-				.setDescription('Set a title')
-				.setMaxLength(50)
-				.setRequired(true)
+			option.setName('title').setDescription('Set a title').setRequired(true)
 		)
 		.addStringOption((option) =>
 			option
@@ -20,7 +22,10 @@ module.exports = {
 				.setAutocomplete(true)
 		)
 		.addStringOption((option) =>
-			option.setName('description').setDescription('Set a description').setMaxLength(50)
+			option.setName('image').setDescription('Provide an image link')
+		)
+		.addStringOption((option) =>
+			option.setName('description').setDescription('Set a description')
 		),
 
 	async autocomplete(interaction) {
@@ -54,6 +59,7 @@ module.exports = {
 		const title = interaction.options.getString('title');
 		const description = interaction.options.getString('description');
 		const dayInput = interaction.options.getString('day').toLowerCase();
+		const image = interaction.options.getString('image').toLowerCase();
 
 		const user = interaction.member;
 		const userName = !user.nickname ? user.displayName : user.nickname;
@@ -121,12 +127,13 @@ module.exports = {
 			.setTimestamp()
 			.setFooter({ text: `Created by ${userName}` })
 			.setColor('#FF0000')
+			.setImage(image)
 			.addFields({
 				name: ' ',
 				value: ' ',
 			});
 
-		const addDaysField = (num) => {
+		const addDaysField = (embed, num) => {
 			const dayName = daysArray[num].name;
 			const dayNameUpperCase = dayName.charAt(0).toUpperCase() + dayName.slice(1);
 			embed.addFields({
@@ -139,7 +146,7 @@ module.exports = {
 					daysArray[num].reacted[0]
 						? daysArray[num].reacted
 								.map((item) => {
-									return `> ${item}`;
+									return `> ${item.name}`;
 								})
 								.join('\n')
 						: '> -'
@@ -155,12 +162,12 @@ module.exports = {
 					value: ' ',
 				});
 			}
-			addDaysField(i);
+			addDaysField(embed, i);
 		}
 
 		// Button builder
 		const buttons = [];
-		const button = async (day, num) => {
+		const button = (day, num) => {
 			const dayToUpperCase = day.charAt(0).toUpperCase() + day.slice(1);
 			buttons.push(
 				new ButtonBuilder()
@@ -180,6 +187,70 @@ module.exports = {
 		const message = await channel.send({
 			embeds: [embed],
 			components: buttonWrapper(buttons, 3),
+		});
+
+		// Button collector
+		const collector = message.createMessageComponentCollector({
+			componentType: ComponentType.Button,
+			time: 604_800_000,
+		});
+
+		collector.on('collect', (interaction) => {
+			const receivedEmbed = message.embeds[0];
+			const newEmbed = EmbedBuilder.from(receivedEmbed);
+
+			const user = interaction.member;
+			const userName = user.displayName ? user.displayName : user.nickname;
+			const userId = user.id;
+
+			newEmbed.data.fields = [];
+			newEmbed.addFields({
+				name: ' ',
+				value: ' ',
+			});
+
+			daysArray.map((day) => {
+				if (interaction.customId === day.name) {
+					if (
+						!!day.reacted.find((user) => {
+							return user.id === userId;
+						})
+					) {
+						const indexOfId = day.reacted.map((user) => user.id).indexOf(userId);
+						console.log(day.reacted);
+						console.log(indexOfId);
+						day.reacted.splice(indexOfId, 1);
+					} else {
+						day.reacted.push({
+							name: userName,
+							id: userId,
+						});
+					}
+					day.value = day.reacted.length;
+				}
+			});
+
+			for (let i = 0; i < daysArray.length; i++) {
+				if (i % 3 === 0 && i > 0) {
+					newEmbed.addFields({
+						name: ' ',
+						value: ' ',
+					});
+				}
+				addDaysField(newEmbed, i);
+			}
+
+			interaction.update({
+				embeds: [newEmbed],
+			});
+			return;
+		});
+
+		collector.on('end', () => {
+			buttons.map((button) => button.setDisabled(true));
+			message.edit({
+				components: buttonWrapper(buttons, 3),
+			});
 		});
 
 		// Inform user post was successful
