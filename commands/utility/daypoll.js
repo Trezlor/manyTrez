@@ -122,16 +122,26 @@ module.exports = {
 
 		// Make embed
 		let embed = new EmbedBuilder()
-			.setTitle(title)
+			.setTitle(`✨ ${title}`)
 			.setDescription(description)
 			.setTimestamp()
 			.setFooter({ text: `Created by ${userName}` })
 			.setColor('#FF0000')
 			.setImage(image)
-			.addFields({
-				name: ' ',
-				value: ' ',
-			});
+			.addFields(
+				{
+					name: ' ',
+					value: ' ',
+				},
+				{
+					name: ' ',
+					value: ' ',
+				},
+				{
+					name: ' ',
+					value: ' ',
+				}
+			);
 
 		const addDaysField = (embed, num) => {
 			const dayName = daysArray[num].name;
@@ -156,12 +166,6 @@ module.exports = {
 		};
 
 		for (let i = 0; i < daysArray.length; i++) {
-			if (i % 3 === 0 && i > 0) {
-				embed.addFields({
-					name: ' ',
-					value: ' ',
-				});
-			}
 			addDaysField(embed, i);
 		}
 
@@ -204,10 +208,20 @@ module.exports = {
 			const userId = user.id;
 
 			newEmbed.data.fields = [];
-			newEmbed.addFields({
-				name: ' ',
-				value: ' ',
-			});
+			newEmbed.addFields(
+				{
+					name: ' ',
+					value: ' ',
+				},
+				{
+					name: ' ',
+					value: ' ',
+				},
+				{
+					name: ' ',
+					value: ' ',
+				}
+			);
 
 			daysArray.map((day) => {
 				if (interaction.customId === day.name) {
@@ -217,8 +231,6 @@ module.exports = {
 						})
 					) {
 						const indexOfId = day.reacted.map((user) => user.id).indexOf(userId);
-						console.log(day.reacted);
-						console.log(indexOfId);
 						day.reacted.splice(indexOfId, 1);
 					} else {
 						day.reacted.push({
@@ -231,12 +243,6 @@ module.exports = {
 			});
 
 			for (let i = 0; i < daysArray.length; i++) {
-				if (i % 3 === 0 && i > 0) {
-					newEmbed.addFields({
-						name: ' ',
-						value: ' ',
-					});
-				}
 				addDaysField(newEmbed, i);
 			}
 
