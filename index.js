@@ -66,6 +66,15 @@ client.on(Events.InteractionCreate, async (interaction) => {
 		return;
 	}
 
+	// Buttons
+	client.on('interactionCreate', async (interaction) => {
+		if (!interaction.isButton()) return;
+
+		if (interaction.customId === 'monday') {
+			// Your Code Goes Here
+		}
+	});
+
 	try {
 		await command.execute(interaction, client);
 	} catch (error) {
