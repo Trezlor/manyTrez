@@ -59,7 +59,7 @@ module.exports = {
 		const title = interaction.options.getString('title');
 		const description = interaction.options.getString('description');
 		const dayInput = interaction.options.getString('day').toLowerCase();
-		const image = interaction.options.getString('image').toLowerCase();
+		const image = interaction.options.getString('image');
 
 		const user = interaction.member;
 		const userName = !user.nickname ? user.displayName : user.nickname;
@@ -136,27 +136,26 @@ module.exports = {
 				{
 					name: ' ',
 					value: ' ',
-				},
-				{
-					name: ' ',
-					value: ' ',
 				}
 			);
 
-		const addDaysField = (embed, num) => {
+		const addEmbedField = (embed, num) => {
 			const dayName = daysArray[num].name;
 			const dayNameUpperCase = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+
 			embed.addFields({
 				name: `${
 					findEmoji(dayName.toLowerCase())
 						? findEmoji(dayName.toLowerCase())
 						: backupEmojis[num]
-				} ${dayNameUpperCase} (${daysArray.find((day) => day.name === dayName).value})`,
+				} ${dayNameUpperCase} ( ${
+					daysArray.find((day) => day.name === dayName).value
+				} )`,
 				value: `${
 					daysArray[num].reacted[0]
 						? daysArray[num].reacted
 								.map((item) => {
-									return `> ${item.name}`;
+									return `- ${item.name}`;
 								})
 								.join('\n')
 						: '> -'
@@ -165,8 +164,9 @@ module.exports = {
 			});
 		};
 
+		// Set up initial embed fields
 		for (let i = 0; i < daysArray.length; i++) {
-			addDaysField(embed, i);
+			addEmbedField(embed, i);
 		}
 
 		// Button builder
@@ -216,10 +216,6 @@ module.exports = {
 				{
 					name: ' ',
 					value: ' ',
-				},
-				{
-					name: ' ',
-					value: ' ',
 				}
 			);
 
@@ -243,7 +239,7 @@ module.exports = {
 			});
 
 			for (let i = 0; i < daysArray.length; i++) {
-				addDaysField(newEmbed, i);
+				addEmbedField(newEmbed, i);
 			}
 
 			interaction.update({
