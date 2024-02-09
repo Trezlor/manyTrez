@@ -17,7 +17,7 @@ module.exports = {
 						? randomAnsiColorText(user.displayName)
 						: randomAnsiColorText(user.nickname)
 				} rolled ${randomAnsiColorText(randomNum(101, 0))}` +
-				' !\n```'
+				' !```'
 		);
 	},
 };
